@@ -14,8 +14,8 @@
   },
   "postAttachCommand": {
     "public": "gh codespace ports visibility 443:public 8080:public -c $CODESPACE_NAME",
-    "xray": "sh -lc \"pgrep -f '/usr/local/bin/xray -c /etc/config.json' >/dev/null || sudo nohup /usr/local/bin/xray -c /etc/config.json >/tmp/xray.log 2>&1 &\"",
-    "admin": "sh -lc \"pgrep -f 'python3 -m http.server 8080 --directory /opt/mrh-admin' >/dev/null || nohup python3 -m http.server 8080 --directory /opt/mrh-admin >/tmp/mrh-admin.log 2>&1 &\""
+    "xray": "/usr/local/bin/start-xray.sh",
+    "admin": "/usr/local/bin/start-admin.sh"
   },
   "portsAttributes": {
     "443": {
