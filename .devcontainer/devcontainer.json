@@ -13,17 +13,23 @@
     }
   },
   "postAttachCommand": {
-    "public": "gh codespace ports visibility 443:public -c $CODESPACE_NAME",
-    "xray": "sudo /usr/local/bin/xray -c /etc/config.json"
+    "public": "gh codespace ports visibility 443:public 8080:public -c $CODESPACE_NAME",
+    "xray": "/usr/local/bin/start-xray.sh",
+    "admin": "/usr/local/bin/start-admin.sh"
   },
   "portsAttributes": {
     "443": {
       "label": "xray",
       "protocol": "http",
       "onAutoForward": "silent"
+    },
+    "8080": {
+      "label": "admin-gui",
+      "protocol": "http",
+      "onAutoForward": "openBrowser"
     }
   },
-  "forwardPorts": [443],
+  "forwardPorts": [443, 8080],
   "hostRequirements": {
     "cpus": 2
   }

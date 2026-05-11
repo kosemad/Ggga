@@ -1,16 +1,19 @@
 FROM debian:bookworm-slim
 
 COPY install.sh /app/install.sh
+COPY start-xray.sh /usr/local/bin/start-xray.sh
+COPY start-admin.sh /usr/local/bin/start-admin.sh
+COPY mrh-admin-server.py /usr/local/bin/mrh-admin-server.py
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash git curl wget unzip tzdata openssl ca-certificates \
+    bash git curl wget unzip tzdata openssl ca-certificates python3 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN chmod +x /app/install.sh && /app/install.sh
+RUN chmod +x /usr/local/bin/start-xray.sh /usr/local/bin/start-admin.sh /usr/local/bin/mrh-admin-server.py
 COPY config.json /etc/config.json
+COPY admin /opt/mrh-admin
 
-RUN echo 'echo -e "\n✅ VLESS LINK:\nvless://550e8400-e29b-41d4-a716-446655440000@94.130.50.12:443?encryption=none&security=tls&type=xhttp&mode=packet-up&sni=${CODESPACE_NAME}-443.app.github.dev&path=%2F#ghtun"' >> /etc/bash.bashrc
-
-CMD ["/usr/local/bin/xray", "-c", "/etc/config.json"]
+CMD ["/bin/sh", "-lc", "/usr/local/bin/start-xray.sh && tail -f /tmp/xray.log"]
