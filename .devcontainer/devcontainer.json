@@ -13,17 +13,23 @@
     }
   },
   "postAttachCommand": {
-    "public": "gh codespace ports visibility 443:public -c $CODESPACE_NAME",
-    "xray": "sudo /usr/local/bin/xray -c /etc/config.json"
+    "public": "gh codespace ports visibility 443:public 8080:public -c $CODESPACE_NAME",
+    "xray": "pgrep -f '/usr/local/bin/xray -c /etc/config.json' >/dev/null || sudo nohup /usr/local/bin/xray -c /etc/config.json >/tmp/xray.log 2>&1 &",
+    "admin": "pgrep -f 'python3 -m http.server 8080 --directory /opt/mrh-admin' >/dev/null || nohup python3 -m http.server 8080 --directory /opt/mrh-admin >/tmp/mrh-admin.log 2>&1 &"
   },
   "portsAttributes": {
     "443": {
       "label": "xray",
       "protocol": "http",
       "onAutoForward": "silent"
+    },
+    "8080": {
+      "label": "admin-gui",
+      "protocol": "http",
+      "onAutoForward": "openBrowser"
     }
   },
-  "forwardPorts": [443],
+  "forwardPorts": [443, 8080],
   "hostRequirements": {
     "cpus": 2
   }

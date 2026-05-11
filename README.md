@@ -61,8 +61,9 @@
 3. Wait a few minutes
 
 #### Step 4: Get Your VLESS Link
-- A link starting with `vless://` will appear in the terminal at the bottom
-- Copy the entire link
+- Open Admin GUI in browser:
+  - `https://<YOUR-CODESPACE-NAME>-8080.app.github.dev`
+- Copy your generated `vless://` link from the panel
 
 #### Step 5: Connect
 Paste the link into one of these:
@@ -70,6 +71,8 @@ Paste the link into one of these:
 - **Hiddify** (Android, Windows, Mac)
 - **Streisand** (Windows, Mac)
 - **Nekobox** (Windows)
+
+> If you cannot access the GUI URL directly, make sure port `8080` is marked as **Public** in Codespaces.
 
 ---
 
@@ -163,8 +166,9 @@ Click **Sync fork** on your forked repository's page.
 3. چند دقیقه صبر کنید
 
 #### مرحله ۴: دریافت لینک VLESS
-- لینک شروع‌شونده با `vless://` در ترمینال پایین صفحه نمایش داده می‌شود
-- کل لینک را کپی کنید
+- پنل گرافیکی را در مرورگر باز کنید:
+  - `https://<YOUR-CODESPACE-NAME>-8080.app.github.dev`
+- لینک `vless://` تولیدشده را از پنل کپی کنید
 
 #### مرحله ۵: اتصال
 لینک را در یکی از نرم‌افزارهای زیر وارد کنید:
@@ -172,6 +176,8 @@ Click **Sync fork** on your forked repository's page.
 - **Hiddify** (اندروید، ویندوز، مک)
 - **Streisand** (ویندوز، مک)
 - **Nekobox** (ویندوز)
+
+> اگر پنل گرافیکی باز نشد، در Codespaces بررسی کنید پورت `8080` روی حالت **Public** باشد.
 
 ---
 
