@@ -3,12 +3,20 @@
 import base64
 import hmac
 import os
+import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ADMIN_DIRECTORY = "/opt/mrh-admin"
-ADMIN_USERNAME = os.getenv("MRH_ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("MRH_ADMIN_PASSWORD", "Sample@Sample")
-AUTH_TOKEN = base64.b64encode(f"{ADMIN_USERNAME}:{ADMIN_PASSWORD}".encode("utf-8")).decode("ascii")
+DEFAULT_ADMIN_USERNAME = "admin"
+DEFAULT_ADMIN_PASSWORD = "Sample@Sample"
+LISTEN_HOST = os.getenv("MRH_ADMIN_HOST", "0.0.0.0")
+LISTEN_PORT = int(os.getenv("MRH_ADMIN_PORT", "8080"))
+
+
+def _build_auth_token():
+    username = os.getenv("MRH_ADMIN_USERNAME", DEFAULT_ADMIN_USERNAME)
+    password = os.getenv("MRH_ADMIN_PASSWORD", DEFAULT_ADMIN_PASSWORD)
+    return base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
 
 
 class AdminAuthHandler(SimpleHTTPRequestHandler):
@@ -20,7 +28,7 @@ class AdminAuthHandler(SimpleHTTPRequestHandler):
         if not authorization.startswith("Basic "):
             return False
         presented_token = authorization[6:].strip()
-        return hmac.compare_digest(presented_token, AUTH_TOKEN)
+        return hmac.compare_digest(presented_token, _build_auth_token())
 
     def _request_auth(self):
         self.send_response(401)
@@ -43,5 +51,13 @@ class AdminAuthHandler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("0.0.0.0", 8080), AdminAuthHandler)
+    if os.getenv("MRH_ADMIN_USERNAME", DEFAULT_ADMIN_USERNAME) == DEFAULT_ADMIN_USERNAME and os.getenv(
+        "MRH_ADMIN_PASSWORD", DEFAULT_ADMIN_PASSWORD
+    ) == DEFAULT_ADMIN_PASSWORD:
+        print(
+            "WARNING: Using default admin credentials. Set MRH_ADMIN_USERNAME and MRH_ADMIN_PASSWORD to override.",
+            file=sys.stderr,
+            flush=True,
+        )
+    server = ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), AdminAuthHandler)
     server.serve_forever()
