@@ -13,6 +13,12 @@
     input { width: 100%; margin-top: .25rem; padding: .6rem; border-radius: 8px; border: 1px solid #475569; background: #0b1220; color: #e2e8f0; }
     button { margin-top: .9rem; padding: .6rem .9rem; border: 0; border-radius: 8px; cursor: pointer; background: #22c55e; color: #06210f; font-weight: 700; }
     pre { overflow: auto; padding: .8rem; border-radius: 8px; border: 1px solid #334155; background: #020617; }
+    .configs { margin-top: 1rem; display: grid; gap: .75rem; }
+    .config-item { border: 1px solid #334155; border-radius: 10px; padding: .75rem; background: #020617; }
+    .config-item .row { display: flex; gap: .5rem; align-items: center; }
+    .config-item strong { display: block; margin-bottom: .5rem; }
+    .config-item pre { margin: 0; flex: 1; white-space: pre-wrap; word-break: break-all; }
+    .config-item button { margin-top: 0; white-space: nowrap; }
     .muted { color: #94a3b8; font-size: .95rem; }
   </style>
 </head>
@@ -26,45 +32,84 @@
     <input id="path" value="/">
     <label for="remark">Remark</label>
     <input id="remark" value="ghtun">
-    <button id="copyBtn">Copy VLESS Link</button>
-    <pre id="link"></pre>
+    <button id="copyAllBtn">Copy All Configs</button>
+    <div id="configs" class="configs"></div>
   </div>
   <script>
+    const STATIC_IPS = ["63.141.252.203", "50.7.5.83", "94.130.50.12"];
     const uuidEl = document.getElementById("uuid");
     const pathEl = document.getElementById("path");
     const remarkEl = document.getElementById("remark");
-    const linkEl = document.getElementById("link");
-    const copyBtn = document.getElementById("copyBtn");
+    const configsEl = document.getElementById("configs");
+    const copyAllBtn = document.getElementById("copyAllBtn");
 
     function extractCodespaceName(hostname) {
       const match = hostname.match(/^(.*)-\d+\.app\.github\.dev$/);
       return match ? match[1] : "";
     }
 
-    function buildLink() {
-      const name = extractCodespaceName(window.location.hostname);
-      const endpoint = name ? `${name}-443.app.github.dev` : "YOUR-CODESPACE-NAME-443.app.github.dev";
+    function buildLink(endpoint, sniEndpoint) {
       const uuid = encodeURIComponent(uuidEl.value.trim());
       const path = encodeURIComponent(pathEl.value.trim() || "/");
       const remark = encodeURIComponent(remarkEl.value.trim() || "ghtun");
-      return `vless://${uuid}@${endpoint}:443?encryption=none&security=tls&type=xhttp&mode=packet-up&sni=${endpoint}&path=${path}#${remark}`;
+      return `vless://${uuid}@${endpoint}:443?encryption=none&security=tls&type=xhttp&mode=packet-up&sni=${encodeURIComponent(sniEndpoint)}&path=${path}#${remark}`;
+    }
+
+    function getConfigs() {
+      const name = extractCodespaceName(window.location.hostname);
+      const domain = name ? `${name}-443.app.github.dev` : "YOUR-CODESPACE-NAME-443.app.github.dev";
+      return [
+        { label: "Domain", host: domain, link: buildLink(domain, domain) },
+        ...STATIC_IPS.map((ip) => ({ label: `IP ${ip}`, host: ip, link: buildLink(ip, domain) }))
+      ];
+    }
+
+    async function copyText(text, button, idleLabel) {
+      const originalLabel = idleLabel;
+      const successLabel = "Copied!";
+      const failureLabel = "Copy failed";
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = successLabel;
+      } catch (error) {
+        console.warn("Clipboard copy failed:", error);
+        button.textContent = failureLabel;
+      }
+      setTimeout(() => (button.textContent = originalLabel), 1200);
     }
 
     function render() {
-      linkEl.textContent = buildLink();
+      configsEl.innerHTML = "";
+      for (const config of getConfigs()) {
+        const item = document.createElement("div");
+        item.className = "config-item";
+
+        const title = document.createElement("strong");
+        title.textContent = `${config.label} (${config.host})`;
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const pre = document.createElement("pre");
+        pre.textContent = config.link;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Copy";
+        button.addEventListener("click", () => copyText(config.link, button, "Copy"));
+
+        row.appendChild(pre);
+        row.appendChild(button);
+        item.appendChild(title);
+        item.appendChild(row);
+        configsEl.appendChild(item);
+      }
     }
 
     [uuidEl, pathEl, remarkEl].forEach((el) => el.addEventListener("input", render));
-    copyBtn.addEventListener("click", async () => {
-      const text = buildLink();
-      try {
-        await navigator.clipboard.writeText(text);
-        copyBtn.textContent = "Copied!";
-      } catch (error) {
-        console.warn("Clipboard copy failed:", error);
-        copyBtn.textContent = "Copy failed";
-      }
-      setTimeout(() => (copyBtn.textContent = "Copy VLESS Link"), 1200);
+    copyAllBtn.addEventListener("click", () => {
+      const allConfigs = getConfigs().map((config) => config.link).join("\n");
+      copyText(allConfigs, copyAllBtn, "Copy All Configs");
     });
 
     async function preloadInfo() {
