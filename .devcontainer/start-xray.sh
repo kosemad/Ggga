@@ -27,13 +27,24 @@ PY
 python3 - <<'PY'
 import json
 import os
+import urllib.request
 from pathlib import Path
+
+def fetch_public_ip():
+    for url in ("https://api.ipify.org", "https://ifconfig.me/ip", "https://icanhazip.com"):
+        try:
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                return resp.read().decode().strip()
+        except (OSError, ValueError):
+            continue
+    return ""
 
 info_path = Path("/opt/mrh-admin/xray-info.json")
 info_path.write_text(json.dumps({
     "uuid": os.environ["XRAY_UUID"],
     "path": "/",
-    "remark": "ghtun"
+    "remark": "ghtun",
+    "server_ip": fetch_public_ip()
 }) + "\n")
 PY
 
